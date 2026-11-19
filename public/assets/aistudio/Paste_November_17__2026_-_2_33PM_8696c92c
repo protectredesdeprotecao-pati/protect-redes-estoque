@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Protect Redes — Gestão</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<meta name="theme-color" content="#0B3A2C">
+<style>
+:root{
+  --verde:#0B3A2C; --verde-m:#0F5C43; --verde-v:#2FA36E; --verde-s:#E7F3EC;
+  --bg:#F5F7F5; --card:#fff; --txt:#16241D; --txt2:#5C6E64; --borda:#E1E8E3;
+  --verm:#C4453A; --verm-bg:#FBEAE8; --amar:#B8842B; --amar-bg:#FBF3E3;
+  --sombra:0 1px 3px rgba(11,58,44,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);display:flex;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+
+/* SIDEBAR */
+.sidebar{width:220px;flex-shrink:0;background:var(--verde);color:#EAF3EE;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto}
+.sidebar-logo{padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-logo h1{font-size:15px;font-weight:700;color:#fff;line-height:1.3}
+.sidebar-logo span{font-size:11px;color:rgba(255,255,255,.55)}
+.nav-section{padding:10px 0}
+.nav-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);padding:8px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:13.5px;color:rgba(255,255,255,.8);cursor:pointer;transition:background .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(47,163,110,.25);color:#fff;font-weight:600}
+.nav-item .ico{width:18px;text-align:center;font-size:15px}
+.sidebar-footer{margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.4)}
+
+/* MAIN */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:var(--card);border-bottom:1px solid var(--borda);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar h2{font-size:17px;font-weight:700}
+.topbar .topbar-actions{display:flex;gap:8px}
+.content{padding:24px;flex:1}
+
+/* PÁGINAS */
+.page{display:none}
+.page.active{display:block}
+
+/* CARDS KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.kpi{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:18px;box-shadow:var(--sombra)}
+.kpi-label{font-size:12px;color:var(--txt2);margin-bottom:6px}
+.kpi-valor{font-size:24px;font-weight:700;color:var(--verde)}
+.kpi-sub{font-size:11px;color:var(--txt2);margin-top:4px}
+.kpi.alerta .kpi-valor{color:var(--verm)}
+.kpi.aviso .kpi-valor{color:var(--amar)}
+
+/* TABELAS */
+.card{background:var(--card);border:1px solid var(--borda);border-radius:12px;box-shadow:var(--sombra);overflow:hidden}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.card-header h3{font-size:15px;font-weight:700}
+.card-body{padding:0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{background:var(--bg);padding:10px 16px;text-align:left;font-size:12px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--borda)}
+tbody td{padding:11px 16px;border-bottom:1px solid var(--borda);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--verde-s)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11.5px;font-weight:600}
+.badge.ok{background:var(--verde-s);color:var(--verde-m)}
+.badge.erro{background:var(--verm-bg);color:var(--verm)}
+.badge.aviso{background:var(--amar-bg);color:var(--amar)}
+.badge.neutro{background:#F0F4F1;color:var(--txt2)}
+
+/* BOTÕES */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:600;border:none;transition:all .15s;cursor:pointer}
+.btn-primary{background:var(--verde-v);color:#fff}
+.btn-primary:hover{background:var(--verde-m)}
+.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--borda)}
+.btn-ghost:hover{background:var(--bg)}
+.btn-danger{background:var(--verm-bg);color:var(--verm);border:1px solid #f0c0bc}
+.btn-danger:hover{background:#f8d5d3}
+@media(max-width:768px){.hide-mobile{display:none}#nfe-layout{grid-template-columns:1fr!important}}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{width:32px;height:32px;padding:0;justify-content:center;border-radius:6px}
+
+/* FORMULÁRIOS */
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12.5px;font-weight:600;color:var(--txt2);margin-bottom:5px}
+.form-control{width:100%;padding:9px 12px;border:1px solid var(--borda);border-radius:8px;font-size:14px;font-family:inherit;background:var(--card);color:var(--txt);transition:border .15s}
+.form-control:focus{outline:none;border-color:var(--verde-v)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.cols3{grid-template-columns:1fr 1fr 1fr}
+.form-row.cols4{grid-template-columns:1fr 1fr 1fr 1fr}
+select.form-control{cursor:pointer}
+
+/* BUSCA */
+.busca-wrap{position:relative}
+.busca-wrap input{padding-left:34px}
+.busca-wrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px}
+
+/* MODAIS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border-radius:14px;width:100%;max-width:560px;box-shadow:0 8px 40px rgba(0,0,0,.18)}
+.modal-header{padding:18px 20px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:16px;font-weight:700}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--borda);display:flex;gap:8px;justify-content:flex-end}
+.btn-fechar{background:none;border:none;font-size:20px;color:var(--txt2);cursor:pointer;line-height:1;padding:2px 6px;border-radius:6px}
+.btn-fechar:hover{background:var(--bg)}
+
+/* PDV */
+.pdv-layout{display:grid;grid-template-columns:1fr 340px;gap:16px;height:calc(100vh - 140px)}
+.pdv-produtos{overflow-y:auto}
+.pdv-carrinho{background:var(--card);border:1px solid var(--borda);border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.pdv-busca{padding:12px;border-bottom:1px solid var(--borda);display:flex;gap:8px}
+.pdv-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:12px;overflow-y:auto;max-height:calc(100vh - 200px)}
+.prod-card{background:var(--card);border:2px solid var(--borda);border-radius:12px;overflow:hidden;text-align:center;cursor:pointer;transition:all .15s;user-select:none}
+.prod-card-body{padding:10px 10px 14px}
+.prod-card:hover{border-color:var(--verde-v);background:rgba(47,163,110,.06);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.prod-card.sem-estoque{opacity:.45;cursor:not-allowed;filter:grayscale(60%)}
+.prod-card-ico{font-size:32px;margin-bottom:6px;padding-top:14px}
+.prod-card-nome{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:4px;line-height:1.3}
+.prod-card-un{font-size:11px;color:var(--txt2);margin-bottom:6px}
+.prod-card-preco{font-size:15px;font-weight:800;color:var(--verde-v)}
+.prod-card-tag{font-size:10px;background:#fee2e2;color:#dc2626;border-radius:4px;padding:2px 6px;margin-top:4px;display:inline-block}
+.produto-card{background:var(--card);border:1px solid var(--borda);border-radius:10px;padding:12px;cursor:pointer;transition:all .15s;text-align:center}
+.produto-card:hover{border-color:var(--verde-v);box-shadow:0 2px 8px rgba(47,163,110,.15)}
+.produto-card.sem-estoque{opacity:.5;cursor:not-allowed}
+.produto-card .p-nome{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.3}
+.produto-card .p-preco{font-size:16px;font-weight:700;color:var(--verde-v)}
+.produto-card .p-saldo{font-size:11px;color:var(--txt2);margin-top:2px}
+.carrinho-header{padding:14px 16px;border-bottom:1px solid var(--borda);font-weight:700;font-size:15px}
+.carrinho-itens{flex:1;overflow-y:auto;padding:10px}
+.carrinho-item{display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--borda);border-radius:8px;margin-bottom:6px;font-size:13px}
+.carrinho-item .ci-nome{flex:1;font-weight:600}
+.carrinho-item .ci-qtd{display:flex;align-items:center;gap:4px}
+.ci-qtd button{width:24px;height:24px;border-radius:6px;border:1px solid var(--borda);background:var(--bg);font-size:14px;display:flex;align-items:center;justify-content:center}
+.carrinho-item .ci-preco{font-weight:700;color:var(--verde-m);min-width:60px;text-align:right}
+.ci-remover{background:none;border:none;color:var(--verm);font-size:16px;padding:2px}
+.carrinho-footer{padding:14px 16px;border-top:1px solid var(--borda)}
+.carrinho-total{display:flex;justify-content:space-between;font-size:20px;font-weight:700;margin-bottom:12px}
+.formas-pag{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.forma-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--borda);background:var(--bg);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.forma-btn.active{background:var(--verde-v);color:#fff;border-color:var(--verde-v)}
+
+/* SIDE PAINEL (formulários deslizantes) */
+.side-painel{position:fixed;top:0;right:-520px;width:500px;height:100vh;background:var(--card);border-left:1px solid var(--borda);box-shadow:-8px 0 40px rgba(0,0,0,.15);z-index:500;transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.side-painel.aberto{right:0}
+.side-painel-inner{display:flex;flex-direction:column;height:100%}
+.side-painel-header{padding:20px 24px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between;background:var(--verde);color:#fff}
+.side-painel-header h3{font-size:16px;font-weight:700;color:#fff}
+.side-painel-header .btn-fechar{color:rgba(255,255,255,.7);font-size:22px}
+.side-painel-header .btn-fechar:hover{color:#fff;background:rgba(255,255,255,.1)}
+.side-painel-corpo{flex:1;overflow-y:auto;padding:20px 24px}
+.side-painel-footer{padding:16px 24px;border-top:1px solid var(--borda);display:flex;gap:10px;justify-content:flex-end;background:var(--bg)}
+.form-secao{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--verde-v);margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--verde-s)}
+.form-secao:first-child{margin-top:0}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.foto-upload-area{width:100%;height:140px;border:2px dashed var(--borda);border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-bottom:16px;transition:all .15s;background:var(--bg)}
+.foto-upload-area:hover{border-color:var(--verde-v);background:var(--verde-s)}
+.foto-preview-box{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;border-radius:10px;overflow:hidden}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700}
+.badge-codigo{background:#f0f0f0;color:#555;font-family:monospace}
+.badge-alerta{background:#fee2e2;color:#dc2626}
+.badge-sucesso{background:#d1fae5;color:#065f46}
+.badge-aviso{background:#fef3c7;color:#92400e}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{background:#1B2E26;color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;box-shadow:0 4px 16px rgba(0,0,0,.25);animation:toastIn .25s ease;max-width:320px}
+.toast.sucesso{background:#0F5C43}
+.toast.erro{background:var(--verm)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ALERTAS */
+.alerta-box{background:var(--verm-bg);border:1px solid #f0c0bc;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--verm)}
+.aviso-box{background:var(--amar-bg);border:1px solid #e8d0a0;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--amar)}
+.info-box{background:var(--verde-s);border:1px solid #b8d8c8;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--verde-m)}
+
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content}
+.tab-btn{padding:7px 16px;border-radius:7px;border:none;background:none;font-size:13.5px;font-weight:600;color:var(--txt2);cursor:pointer;transition:all .15s}
+.tab-btn.active{background:var(--card);color:var(--verde);box-shadow:var(--sombra)}
+
+/* FILTROS */
+.filtros{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filtros .form-control{min-width:140px}
+
+/* DUPLICATA STATUS */
+.dup-vencida{color:var(--verm);font-weight:700}
+.dup-hoje{color:var(--amar);font-weight:700}
+.dup-ok{color:var(--verde-v)}
+.dup-paga{color:var(--txt2)}
+
+/* XML upload */
+.upload-area{border:2px dashed var(--borda);border-radius:10px;padding:30px;text-align:center;cursor:pointer;transition:border .15s}
+.upload-area:hover{border-color:var(--verde-v)}
+.upload-area input{display:none}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 20px;color:var(--txt2)}
+.empty .empty-ico{font-size:40px;margin-bottom:12px}
+.empty p{font-size:14px}
+
+/* Aliases de botões usados no JS */
+.btn-primario{background:var(--verde-v);color:#fff;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:600;border:none;cursor:pointer;transition:all .15s}
+.btn-primario:hover{background:var(--verde-m)}
+.btn-sec{background:transparent;color:var(--txt2);border:1px solid var(--borda);display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-sec:hover{background:var(--bg)}
+.btn-perigo,.btn-danger{background:var(--verm-bg);color:var(--verm);border:1px solid #f0c0bc;display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-perigo:hover,.btn-danger:hover{background:#f8d5d3}
+.filtros-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.filtros-bar label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--txt2)}
+.filtros-bar .input,.input{padding:8px 12px;border:1px solid var(--borda);border-radius:8px;font-size:13.5px;font-family:inherit;background:var(--card);color:var(--txt)}
+.input-busca{padding:8px 12px;border:1px solid var(--borda);border-radius:8px;font-size:13.5px;font-family:inherit;background:var(--card);color:var(--txt);width:100%;max-width:320px}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.page-title{font-size:18px;font-weight:700}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.vazio{text-align:center;color:var(--txt2);padding:24px!important;font-style:italic}
+.table-wrap{background:var(--card);border:1px solid var(--borda);border-radius:12px;overflow:hidden;box-shadow:var(--sombra)}
+
+/* KPI aliases para compatibilidade com JS */
+.kpi-card{background:var(--card);border:1px solid var(--borda);border-radius:12px;padding:18px;box-shadow:var(--sombra)}
+.kpi-card .kpi-label{font-size:12px;color:var(--txt2);margin-bottom:6px}
+.kpi-card .kpi-valor{font-size:24px;font-weight:700;color:var(--verde)}
+.kpi-card .kpi-sub{font-size:11px;color:var(--txt2);margin-top:4px}
+.kpi-positivo .kpi-valor{color:var(--verde-v)!important}
+.kpi-negativo .kpi-valor{color:var(--verm)!important}
+.kpi-alerta .kpi-valor{color:var(--amar)!important}
+.badge-info{background:#e0f0ff;color:#1565c0;display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700}
+
+/* RESPONSIVO */
+@media(max-width:768px){
+  .sidebar{width:100%;height:auto;position:fixed;bottom:0;top:auto;flex-direction:row;z-index:200;overflow-x:auto;overflow-y:hidden}
+  .sidebar-logo,.sidebar-footer{display:none}
+  .nav-section{display:flex;flex-direction:row;padding:0}
+  .nav-label{display:none}
+  .nav-item{flex-direction:column;padding:8px 10px;font-size:10px;gap:2px;min-width:56px;justify-content:center;align-items:center}
+  .nav-item .ico{font-size:18px;width:auto}
+  .nav-item span:last-child{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px}
+  .main{margin-left:0;margin-bottom:64px;padding-bottom:env(safe-area-inset-bottom)}
+  .content{padding:12px}
+  .pdv-layout{grid-template-columns:1fr;height:auto}
+  .pdv-grade{max-height:40vh}
+  .form-row{grid-template-columns:1fr}
+  .form-row.cols3{grid-template-columns:1fr}
+  .form-row.cols4{grid-template-columns:1fr 1fr}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .side-painel{width:100%;right:-100%;top:auto;bottom:0;height:90vh;border-radius:16px 16px 0 0;border-left:none;border-top:1px solid var(--borda)}
+  .side-painel.aberto{right:0}
+  .topbar{padding:10px 14px}
+  .topbar h2{font-size:15px}
+  table{font-size:12px}
+  thead th,tbody td{padding:8px 10px}
+  .card-header{padding:12px 14px;flex-direction:column;align-items:flex-start}
+  .filtros{flex-direction:column;gap:6px;width:100%}
+  .filtros .form-control{min-width:unset;width:100%}
+  .btn{font-size:13px;padding:7px 12px}
+}
+@media(min-width:769px) and (max-width:1024px){
+  .sidebar{width:60px}
+  .sidebar-logo,.nav-label,.sidebar-footer{display:none}
+  .nav-item span:not(.ico){display:none}
+  .nav-item{justify-content:center;padding:12px}
+  .nav-item .ico{display:inline-block!important;font-size:20px;width:auto}
+  .main{margin-left:60px}
+}
+</style>
+</head>
+<body>
+
+<div id="app-wrapper" style="display:none;width:100%;min-height:100vh;">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:46px;height:46px;border-radius:50%;background:#fff;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid #2FA36E">
+        <svg viewBox="0 0 100 100" width="44" height="44" xmlns="http://www.w3.org/2000/svg">
+          <!-- fundo branco -->
+          <circle cx="50" cy="50" r="50" fill="#fff"/>
+          <!-- rede superior (losangos) -->
+          <g stroke="#a8c8a0" stroke-width="1.2" fill="none" opacity="0.7">
+            <path d="M10 5 L25 18 L10 31 L-5 18Z"/>
+            <path d="M30 5 L45 18 L30 31 L15 18Z"/>
+            <path d="M50 5 L65 18 L50 31 L35 18Z"/>
+            <path d="M70 5 L85 18 L70 31 L55 18Z"/>
+            <path d="M90 5 L105 18 L90 31 L75 18Z"/>
+            <path d="M20 18 L35 31 L20 44 L5 31Z"/>
+            <path d="M40 18 L55 31 L40 44 L25 31Z"/>
+            <path d="M60 18 L75 31 L60 44 L45 31Z"/>
+            <path d="M80 18 L95 31 L80 44 L65 31Z"/>
+          </g>
+          <!-- rede inferior (losangos) -->
+          <g stroke="#a8c8a0" stroke-width="1.2" fill="none" opacity="0.7">
+            <path d="M10 60 L25 73 L10 86 L-5 73Z"/>
+            <path d="M30 60 L45 73 L30 86 L15 73Z"/>
+            <path d="M50 60 L65 73 L50 86 L35 73Z"/>
+            <path d="M70 60 L85 73 L70 86 L55 73Z"/>
+            <path d="M90 60 L105 73 L90 86 L75 73Z"/>
+            <path d="M20 73 L35 86 L20 99 L5 86Z"/>
+            <path d="M40 73 L55 86 L40 99 L25 86Z"/>
+            <path d="M60 73 L75 86 L60 99 L45 86Z"/>
+            <path d="M80 73 L95 86 L80 99 L65 86Z"/>
+          </g>
+          <!-- faixa branca central para texto -->
+          <rect x="0" y="36" width="100" height="30" fill="white"/>
+          <!-- Protect em verde degradê -->
+          <text x="50" y="56" text-anchor="middle" font-family="Arial,sans-serif" font-weight="800" font-size="22" fill="#2FA36E">Protect</text>
+          <!-- REDES em cinza -->
+          <text x="50" y="66" text-anchor="middle" font-family="Arial,sans-serif" font-weight="600" font-size="10" fill="#888" letter-spacing="3">REDES</text>
+        </svg>
+      </div>
+      <div>
+        <h1>Protect Redes</h1>
+        <span>Sistema de Gestão</span>
+      </div>
+    </div>
+  </div>
+  <nav class="nav-section">
+    <div class="nav-label">Principal</div>
+    <button class="nav-item active" onclick="navegarPara('painel')"><span class="ico">📊</span><span>Painel</span></button>
+    <button class="nav-item" onclick="navegarPara('produtos')"><span class="ico">📦</span><span>Produtos</span></button>
+    <button class="nav-item" onclick="navegarPara('fornecedores')"><span class="ico">🏢</span><span>Fornecedores</span></button>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Movimentações</div>
+    <button class="nav-item" onclick="navegarPara('entradas')"><span class="ico">📥</span><span>Entrada Material</span></button>
+    <button class="nav-item" onclick="navegarPara('vendas')"><span class="ico">🛒</span><span>Vendas da Loja</span></button>
+    <button class="nav-item" onclick="navegarPara('obra')"><span class="ico">🔧</span><span>Saída p/ Obra</span></button>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Financeiro</div>
+    <button class="nav-item" onclick="navegarPara('caixa')"><span class="ico">💰</span><span>Caixa</span></button>
+    <button class="nav-item" onclick="navegarPara('duplicatas')"><span class="ico">📋</span><span>Duplicatas</span></button>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Fiscal</div>
+    <button class="nav-item" onclick="navegarPara('nfe')"><span class="ico">🧾</span><span>NF-e</span></button>
+    <button class="nav-item" onclick="navegarPara('clientes')"><span class="ico">👤</span><span>Clientes</span></button>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Relatórios</div>
+    <button class="nav-item" onclick="navegarPara('relatorios')"><span class="ico">📈</span><span>Relatórios</span></button>
+    <button class="nav-item" onclick="navegarPara('fiado')"><span class="ico">💳</span><span>Vendas Fiado</span></button>
+  </nav>
+  <nav class="nav-section">
+    <div class="nav-label">Config</div>
+    <button class="nav-item" onclick="navegarPara('cadastros')"><span class="ico">⚙️</span><span>Cadastros</span></button>
+    <button class="nav-item" onclick="navegarPara('usuarios')"><span class="ico">👥</span><span>Usuários</span></button>
+  </nav>
+  <div class="sidebar-footer" style="margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);">
+    <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:8px;">v2.2 · Dados em nuvem</div>
+    <button onclick="fazerLogout()" style="width:100%;padding:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:rgba(255,255,255,.8);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;">
+      🚪 Sair
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <h2 id="topbar-titulo">Painel</h2>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="display:flex;align-items:center;gap:6px;background:var(--verde-s);padding:6px 12px;border-radius:20px;font-size:13px;color:var(--verde);">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        <span id="badge-usuario">—</span>
+      </div>
+      <button onclick="fazerLogout()" title="Sair" style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(196,69,58,.1);border:1px solid rgba(196,69,58,.2);border-radius:20px;font-size:13px;font-weight:600;color:#C4453A;cursor:pointer;">
+        🚪 <span class="hide-mobile">Sair</span>
+      </button>
+      <div class="topbar-actions" id="topbar-actions"></div>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- PAINEL -->
+    <div id="page-painel" class="page active">
+      <div class="kpi-grid" id="painel-kpis"></div>
+      <div id="painel-alertas"></div>
+      <div class="card">
+        <div class="card-header"><h3>Últimas Vendas</h3></div>
+        <table><thead><tr><th>Data</th><th>Cliente</th><th>Valor</th><th>Status</th></tr></thead>
+        <tbody id="painel-vendas"></tbody></table>
+      </div>
+    </div>
+
+    <!-- PRODUTOS -->
+    <div id="page-produtos" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="filtros">
+            <div class="busca-wrap"><input class="form-control" id="busca-prod" placeholder="Buscar produto..." oninput="renderProdutos()"></div>
+            <select class="form-control" id="filtro-cat-prod" onchange="renderProdutos()">
+              <option value="">Todas categorias</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="abrirModalProduto()">+ Novo Produto</button>
+        </div>
+        <table>
+          <thead><tr><th>Código</th><th>Nome</th><th>Categoria</th><th>Custo</th><th>Venda</th><th>Saldo</th><th>Mín.</th><th></th></tr></thead>
+          <tbody id="tbody-produtos"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FORNECEDORES -->
+    <div id="page-fornecedores" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="busca-wrap"><input class="form-control" id="busca-forn" placeholder="Buscar fornecedor..." oninput="renderFornecedores()"></div>
+          <button class="btn btn-primary" onclick="abrirModalFornecedor()">+ Novo Fornecedor</button>
+        </div>
+        <table>
+          <thead><tr><th>Nome</th><th>CNPJ</th><th>Contato</th><th>Telefone</th><th>Categoria</th><th></th></tr></thead>
+          <tbody id="tbody-forn"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ENTRADAS -->
+    <div id="page-entradas" class="page">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setTabEntrada('manual',this)">Manual</button>
+        <button class="tab-btn" onclick="setTabEntrada('xml',this)">Importar XML</button>
+        <button class="tab-btn" onclick="setTabEntrada('historico',this)">Histórico</button>
+      </div>
+      <div id="tab-entrada-manual">
+        <div class="card">
+          <div class="card-header"><h3>Nova Entrada de Material</h3></div>
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Produto *</label>
+                <select class="form-control" id="ent-produto"><option value="">Selecione...</option></select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Quantidade *</label>
+                <input type="number" class="form-control" id="ent-qtd" min="1" value="1">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Custo unitário (R$)</label>
+                <input type="number" class="form-control" id="ent-custo" min="0" step="0.01" placeholder="0,00">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fornecedor</label>
+                <select class="form-control" id="ent-fornecedor"></select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Data</label>
+                <input type="date" class="form-control" id="ent-data">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Nota Fiscal / Referência</label>
+                <input type="text" class="form-control" id="ent-nf" placeholder="Ex: NF 00123">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Observação</label>
+              <input type="text" class="form-control" id="ent-obs" placeholder="Opcional">
+            </div>
+            <button class="btn btn-primary" onclick="salvarEntrada()">✅ Registrar Entrada</button>
+          </div>
+        </div>
+      </div>
+      <div id="tab-entrada-xml" style="display:none">
+        <div class="card">
+          <div class="card-header"><h3>Importar XML de Nota Fiscal</h3></div>
+          <div class="modal-body">
+            <div class="info-box">📌 Selecione o arquivo XML da NF-e do fornecedor. O sistema vai registrar as entradas no estoque e as duplicatas a pagar automaticamente.</div>
+            <label class="upload-area" for="xml-input">
+              <input type="file" id="xml-input" accept=".xml" onchange="processarXMLNF(this)">
+              <div style="font-size:36px;margin-bottom:8px">📄</div>
+              <div style="font-weight:700;margin-bottom:4px">Clique para selecionar o XML</div>
+              <div style="font-size:12px;color:var(--txt2)">Arquivo .xml da NF-e</div>
+            </label>
+            <div id="xml-preview" style="margin-top:16px"></div>
+          </div>
+        </div>
+      </div>
+      <div id="tab-entrada-historico" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="filtros">
+              <input type="date" class="form-control" id="ent-hist-de" onchange="renderHistoricoEntradas()">
+              <input type="date" class="form-control" id="ent-hist-ate" onchange="renderHistoricoEntradas()">
+              <div class="busca-wrap"><input class="form-control" id="busca-ent" placeholder="Buscar..." oninput="renderHistoricoEntradas()"></div>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Custo Unit.</th><th>Fornecedor</th><th>Referência</th></tr></thead>
+            <tbody id="tbody-entradas"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VENDAS -->
+    <div id="page-vendas" class="page">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setTabVenda('pdv',this)">PDV</button>
+        <button class="tab-btn" onclick="setTabVenda('historico',this)">Histórico</button>
+      </div>
+      <div id="tab-venda-pdv">
+        <div class="pdv-layout">
+          <div class="pdv-produtos">
+            <div class="pdv-busca">
+              <div class="busca-wrap" style="flex:1"><input class="form-control" id="busca-pdv" placeholder="Buscar produto..." oninput="renderGradeProdutos()"></div>
+              <select class="form-control" id="filtro-cat-pdv" style="width:160px" onchange="renderGradeProdutos()">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="pdv-grade" id="grade-pdv"></div>
+          </div>
+          <div class="pdv-carrinho">
+            <div class="carrinho-header">🛒 Carrinho</div>
+            <div style="padding:10px 14px;border-bottom:1px solid var(--borda)">
+              <label class="form-label">Cliente (opcional)</label>
+              <input type="text" class="form-control" id="pdv-cliente" placeholder="Nome do cliente..." list="lista-clientes">
+              <datalist id="lista-clientes"></datalist>
+            </div>
+            <div class="carrinho-itens" id="carrinho-itens"></div>
+            <div class="carrinho-footer">
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);margin-bottom:6px">
+                <span>Desconto (R$)</span>
+                <input type="number" id="pdv-desconto" value="0" min="0" step="0.01" style="width:80px;padding:4px 8px;border:1px solid var(--borda);border-radius:6px;text-align:right;font-size:13px" oninput="renderCarrinho()">
+              </div>
+              <div class="carrinho-total"><span>Total</span><span id="pdv-total">R$ 0,00</span></div>
+              <div class="formas-pag" id="formas-pag">
+                <button class="forma-btn active" onclick="setFormaPag('dinheiro',this)">💵 Dinheiro</button>
+                <button class="forma-btn" onclick="setFormaPag('pix',this)">📱 PIX</button>
+                <button class="forma-btn" onclick="setFormaPag('credito',this)">💳 Crédito</button>
+                <button class="forma-btn" onclick="setFormaPag('debito',this)">💳 Débito</button>
+                <button class="forma-btn" onclick="setFormaPag('fiado',this)">📝 Fiado</button>
+              </div>
+              <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:15px" onclick="finalizarVenda()">✅ Finalizar Venda</button>
+              <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:6px;font-size:13px" onclick="limparCarrinho()">🗑 Limpar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tab-venda-historico" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="filtros">
+              <input type="date" class="form-control" id="venda-de" onchange="renderHistoricoVendasAba()">
+              <input type="date" class="form-control" id="venda-ate" onchange="renderHistoricoVendasAba()">
+              <div class="busca-wrap"><input class="form-control" id="busca-venda" placeholder="Buscar cliente..." oninput="renderHistoricoVendasAba()"></div>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Data</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Pgto</th><th>Vendedor</th><th>Status</th><th></th></tr></thead>
+            <tbody id="tbody-vendas"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- OBRA -->
+    <div id="page-obra" class="page">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setTabObra('pdv',this)">PDV</button>
+        <button class="tab-btn" onclick="setTabObra('historico',this)">Histórico</button>
+      </div>
+      <div id="tab-obra-pdv">
+        <div class="info-box" style="margin-bottom:16px">🔧 Registre materiais usados em instalações ou uso interno. O estoque é baixado pelo <strong>preço de custo</strong> e não gera entrada no Caixa.</div>
+        <div class="pdv-layout">
+          <!-- Grade de produtos -->
+          <div class="pdv-produtos">
+            <div class="pdv-busca">
+              <div class="busca-wrap" style="flex:1"><input class="form-control" id="busca-obra" placeholder="🔍 Buscar material..." oninput="renderGradeObra()"></div>
+              <select class="form-control" id="filtro-cat-obra" style="width:160px" onchange="renderGradeObra()">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div class="pdv-grade" id="grade-obra"></div>
+          </div>
+          <!-- Painel de saída -->
+          <div class="pdv-carrinho">
+            <div class="carrinho-header">🏗️ Saída para Obra</div>
+            <div id="obra-carrinho-itens" style="flex:1;overflow-y:auto;padding:10px"></div>
+            <div class="carrinho-footer">
+              <div style="margin-bottom:10px">
+                <label style="font-size:12px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Destino / Obra *</label>
+                <input id="obra-destino-input" class="form-control" placeholder="Ex: Ap. 42 — Rua das Flores" style="width:100%">
+              </div>
+              <div style="margin-bottom:10px">
+                <label style="font-size:12px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Data</label>
+                <input type="date" id="obra-data-input" class="form-control" style="width:100%">
+              </div>
+              <div style="margin-bottom:12px">
+                <label style="font-size:12px;font-weight:600;color:var(--txt2);display:block;margin-bottom:4px">Observações</label>
+                <input id="obra-obs-input" class="form-control" placeholder="Opcional..." style="width:100%">
+              </div>
+              <div id="obra-total" style="font-size:15px;font-weight:700;color:var(--txt2);margin-bottom:12px">Custo: R$ 0,00</div>
+              <button class="btn btn-primario" style="width:100%;padding:14px;font-size:15px" onclick="finalizarSaidaObra()">🏗️ Registrar Saída</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="tab-obra-historico" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="filtros">
+              <input type="date" class="form-control" id="obra-hist-de" onchange="renderHistoricoObra()">
+              <input type="date" class="form-control" id="obra-hist-ate" onchange="renderHistoricoObra()">
+              <div class="busca-wrap"><input class="form-control" id="busca-obra-hist" placeholder="Buscar produto ou destino..." oninput="renderHistoricoObra()"></div>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Custo Unit.</th><th>Destino/Obra</th><th>Obs.</th><th></th></tr></thead>
+            <tbody id="tbody-obra-hist"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAIXA -->
+    <div id="page-caixa" class="page">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-label">Total Entradas</div><div class="kpi-valor" id="cx-entrada">R$ 0,00</div></div>
+        <div class="kpi"><div class="kpi-label">Total Saídas</div><div class="kpi-valor alerta" id="cx-saida">R$ 0,00</div></div>
+        <div class="kpi"><div class="kpi-label">Saldo do Período</div><div class="kpi-valor" id="cx-saldo">R$ 0,00</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="filtros">
+            <input type="date" class="form-control" id="cx-de">
+            <input type="date" class="form-control" id="cx-ate">
+            <button class="btn btn-ghost btn-sm" onclick="carregarCaixa()">🔄 Atualizar</button>
+          </div>
+          <div style="font-size:12px;color:var(--txt2)">Alimentado automaticamente pelas vendas da loja</div>
+        </div>
+        <table>
+          <thead><tr><th>Data</th><th>Descrição</th><th>Cliente</th><th>Pagamento</th><th>Tipo</th><th>Valor</th></tr></thead>
+          <tbody id="tbody-caixa"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DUPLICATAS -->
+    <div id="page-duplicatas" class="page">
+      <div class="kpi-grid" id="dup-kpis"></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="filtros">
+            <select class="form-control" id="filtro-dup-status" onchange="renderDuplicatas()">
+              <option value="">Todas</option>
+              <option value="pendente">Pendentes</option>
+              <option value="vencida">Vencidas</option>
+              <option value="paga">Pagas</option>
+            </select>
+            <div class="busca-wrap"><input class="form-control" id="busca-dup" placeholder="Buscar..." oninput="renderDuplicatas()"></div>
+          </div>
+          <button class="btn btn-primary" onclick="abrirModalDuplicata()">+ Nova Duplicata</button>
+        </div>
+        <table>
+          <thead><tr><th>Fornecedor</th><th>NF</th><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Status</th><th></th></tr></thead>
+          <tbody id="tbody-dup"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NF-e -->
+    <div id="page-nfe" class="page">
+      <div class="kpi-grid" id="nfe-kpis"></div>
+      <div class="card">
+        <div class="card-header">
+          <div class="filtros">
+            <select class="form-control" id="filtro-nfe-status" onchange="renderNFe()">
+              <option value="">Todas</option>
+              <option value="autorizada">Autorizadas</option>
+              <option value="pendente">Pendentes</option>
+              <option value="rejeitada">Rejeitadas</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="abrirModalConfigNFe()">⚙️ Configurar PHP</button>
+            <button class="btn btn-primary" onclick="abrirModalEmitirNFe()">+ Emitir NF-e</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Nº</th><th>Data</th><th>Cliente</th><th>Valor</th><th>Status</th><th>Chave</th><th></th></tr></thead>
+          <tbody id="tbody-nfe"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div id="page-clientes" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div class="busca-wrap"><input class="form-control" id="busca-cli" placeholder="Buscar cliente..." oninput="renderClientes()"></div>
+          <button class="btn btn-primary" onclick="abrirModalCliente()">+ Novo Cliente</button>
+        </div>
+        <table>
+          <thead><tr><th>Nome</th><th>CPF/CNPJ</th><th>Telefone</th><th>Cidade</th><th></th></tr></thead>
+          <tbody id="tbody-cli"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CADASTROS -->
+    <div id="page-cadastros" class="page">
+      <div class="card">
+        <div class="card-header"><h3>Categorias de Produto</h3></div>
+        <div class="modal-body">
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input type="text" class="form-control" id="nova-cat" placeholder="Nome da categoria...">
+            <button class="btn btn-primary" onclick="salvarCategoria()">Adicionar</button>
+          </div>
+          <div id="lista-categorias"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RELATÓRIOS -->
+    <div id="page-relatorios" class="page"></div>
+
+    <!-- VENDAS FIADO -->
+    <div id="page-fiado" class="page"></div>
+
+    <!-- USUÁRIOS -->
+    <div id="page-usuarios" class="page"></div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<!-- ===================== MODAIS ===================== -->
+
+<!-- Modal Usuário -->
+<div id="modal-usuario" class="modal-overlay" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <h3 id="modal-usuario-titulo">Usuário</h3>
+      <button class="modal-close" onclick="fecharModal('modal-usuario')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;padding:20px;">
+      <input type="hidden" id="modal-usuario-id">
+      <div>
+        <label class="form-label">Nome completo</label>
+        <input type="text" class="form-control" id="modal-usuario-nome" placeholder="Ex: Patrícia">
+      </div>
+      <div>
+        <label class="form-label">Login (usuário)</label>
+        <input type="text" class="form-control" id="modal-usuario-login" placeholder="Ex: patricia" autocomplete="off">
+      </div>
+      <div>
+        <label class="form-label">Senha</label>
+        <input type="password" class="form-control" id="modal-usuario-senha" placeholder="Senha" autocomplete="new-password">
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+        <button class="btn" onclick="fecharModal('modal-usuario')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarUsuario()">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Produto -->
+<div id="modal-produto" class="modal-overlay">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3 id="modal-prod-titulo">Novo Produto</h3>
+      <button class="btn-fechar" onclick="fecharModal('modal-produto')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="p-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome *</label>
+          <input type="text" class="form-control" id="p-nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Código interno</label>
+          <input type="text" class="form-control" id="p-codigo">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Categoria</label>
+          <select class="form-control" id="p-categoria"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unidade</label>
+          <select class="form-control" id="p-unidade">
+            <option>Unidade</option><option>Metro</option><option>Rolo</option>
+            <option>Cento</option><option>Fardo</option><option>Barra</option>
+            <option>Par</option><option>Kit</option><option>Litro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row cols3">
+        <div class="form-group">
+          <label class="form-label">Preço de Custo (R$)</label>
+          <input type="number" class="form-control" id="p-custo" min="0" step="0.01" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Preço de Venda (R$)</label>
+          <input type="number" class="form-control" id="p-venda" min="0" step="0.01" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Saldo Atual</label>
+          <input type="number" class="form-control" id="p-saldo" min="0" value="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Estoque Mínimo</label>
+          <input type="number" class="form-control" id="p-minimo" min="0" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fornecedor</label>
+          <select class="form-control" id="p-fornecedor"><option value="">— Nenhum —</option></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Código de Barras (EAN)</label>
+        <input type="text" class="form-control" id="p-codbarras">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-produto')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarProduto()">Salvar Produto</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Fornecedor -->
+<div id="modal-fornecedor" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-forn-titulo">Novo Fornecedor</h3>
+      <button class="btn-fechar" onclick="fecharModal('modal-fornecedor')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome / Razão Social *</label>
+          <input type="text" class="form-control" id="f-nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">CNPJ</label>
+          <input type="text" class="form-control" id="f-cnpj" placeholder="00.000.000/0000-00">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Contato (nome)</label>
+          <input type="text" class="form-control" id="f-contato">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telefone</label>
+          <input type="text" class="form-control" id="f-telefone" placeholder="(11) 99999-9999">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Categoria</label>
+          <input type="text" class="form-control" id="f-categoria" placeholder="Ex: Redes, Ferragens...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Endereço</label>
+          <input type="text" class="form-control" id="f-endereco">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-fornecedor')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFornecedor()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Saída para Obra -->
+<div id="modal-obra" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Saída para Obra / Uso Interno</h3>
+      <button class="btn-fechar" onclick="fecharModal('modal-obra')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="aviso-box">⚠️ Esta saída baixa o estoque pelo preço de <strong>custo</strong> e não gera receita no Caixa.</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Produto *</label>
+          <select class="form-control" id="obra-produto" onchange="preencherCustoObra()"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantidade *</label>
+          <input type="number" class="form-control" id="obra-qtd" min="1" value="1">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Custo unitário (R$)</label>
+          <input type="number" class="form-control" id="obra-custo" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-control" id="obra-data">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Destino / Obra / Cliente</label>
+        <input type="text" class="form-control" id="obra-destino" placeholder="Ex: Instalação Rua X, Ap 42 — João Silva">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observação</label>
+        <input type="text" class="form-control" id="obra-obs">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-obra')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarSaidaObra()">Registrar Saída</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Duplicata -->
+<div id="modal-dup" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-dup-titulo">Nova Duplicata</h3>
+      <button class="btn-fechar" onclick="fecharModal('modal-dup')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fornecedor *</label>
+          <select class="form-control" id="dup-forn"></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número NF</label>
+          <input type="text" class="form-control" id="dup-nf" placeholder="Ex: 00123">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Valor (R$) *</label>
+          <input type="number" class="form-control" id="dup-valor" min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vencimento *</label>
+          <input type="date" class="form-control" id="dup-venc">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição</label>
+        <input type="text" class="form-control" id="dup-desc" placeholder="Ex: Compra de redes - boleto 1/3">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Forma de pagamento</label>
+        <select class="form-control" id="dup-forma">
+          <option value="boleto">Boleto</option>
+          <option value="pix">PIX</option>
+          <option value="transferencia">Transferência</option>
+          <option value="dinheiro">Dinheiro</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-dup')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarDuplicata()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Pagar Duplicata -->
+<div id="modal-pagar-dup" class="modal-overlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3>Registrar Pagamento</h3>
+      <button class="btn-fechar" onclick="fecharModal('modal-pagar-dup')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pagar-dup-id">
+      <div class="form-group">
+        <label class="form-label">Data do Pagamento</label>
+        <input type="date" class="form-control" id="pagar-dup-data">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Forma de Pagamento</label>
+        <select class="form-control" id="pagar-dup-forma">
+          <option value="boleto">Boleto</option>
+          <option value="pix">PIX</option>
+          <option value="transferencia">Transferência</option>
+          <option value="dinheiro">Dinheiro</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-pagar-dup')">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarPagamentoDup()">✅ Confirmar Pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal NF-e Emitir -->
+<div id="modal-nfe" class="modal-overlay">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <h3>Emitir NF-e</h3>
+      <button class="btn-fechar" onclick="fecharModal('modal-nfe')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box">⚠️ Requer servidor PHP com NFePHP configurado. <a href="#" onclick="fecharModal('modal-nfe');abrirModalConfigNFe();return false" style="font-weight:700">Configurar servidor →</a></div>
+      <input type="hidden" id="nfe-venda-id">
+      <h4 style="margin-bottom:12px;font-size:14px">Destinatário</h4>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome / Razão Social *</label>
+          <input type="text" class="form-control" id="nfe-dest-nome">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-control" id="nfe-dest-tipo"><option value="F">Pessoa Física</option><option value="J">Pessoa Jurídica</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CPF / CNPJ *</label>
+          <input type="text" class="form-control" id="nfe-dest-doc">
+        </div>
+        <div class="form-group">
+          <label class="form-label">IE (Inscrição Estadual)</label>
+          <input type="text" class="form-control" id="nfe-dest-ie" placeholder="ISENTO">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CEP</label>
+          <input type="text" class="form-control" id="nfe-dest-cep" onblur="buscarCEPNFe()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Endereço</label>
+          <input type="text" class="form-control" id="nfe-dest-end">
+        </div>
+      </div>
+      <div class="form-row cols3">
+        <div class="form-group">
+          <label class="form-label">Número</label>
+          <input type="text" class="form-control" id="nfe-dest-num">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bairro</label>
+          <input type="text" class="form-control" id="nfe-dest-bairro">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cidade</label>
+          <input type="text" class="form-control" id="nfe-dest-cidade" value="São Paulo">
+        </div>
+      </div>
+      <h4 style="margin:12px 0;font-size:14px">Itens</h4>
+      <div id="nfe-itens-lista"></div>
+      <div style="text-align:right;margin-top:8px;font-size:16px;font-weight:700">Total: <span id="nfe-total">R$ 0,00</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-nfe')">Cancelar</button>
+      <button class="btn btn-primary" onclick="enviarNFe()">📤 Enviar para SEFAZ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Config NF-e -->
+<div id="modal-config-nfe" class="modal-overlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h3>⚙️ Configuração do Servidor PHP</h3>
+      <button class="btn-fechar" onclick="fecharModal('modal-config-nfe')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="info-box">Configure o endereço do seu servidor PHP (Hostinger) que processará a NF-e com NFePHP.</div>
+      <div class="form-group">
+        <label class="form-label">URL do servidor PHP *</label>
+        <input type="url" class="form-control" id="cfg-nfe-url" placeholder="https://seudominio.com.br/estoque/nfe/emitir.php">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Token de autenticação (opcional)</label>
+        <input type="text" class="form-control" id="cfg-nfe-token" placeholder="Token secreto">
+      </div>
+      <div class="aviso-box" style="margin-top:8px">
+        <strong>Próximos passos:</strong><br>
+        1. Instale o NFePHP no Hostinger via Composer<br>
+        2. Suba seu certificado .pfx para pasta <code>/estoque/nfe/certs/</code><br>
+        3. Configure emitir.php com CNPJ e senha do certificado
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-config-nfe')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarConfigNFe()">Salvar Configuração</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app-wrapper -->
+<script src="app.js?v=52"></script>
+</body>
+</html>
